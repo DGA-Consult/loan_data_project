@@ -19,33 +19,20 @@ class RDSDatabaseConnector:
         self.database = credentials['RDS_DATABASE']
         self.user = credentials['RDS_USER']
         self.password = credentials['RDS_PASSWORD']
-        self.connection = None
+        self.engine = None
 
     def connect(self):
         try:
-            self.connection = psycopg2.connect(
-                host=self.host,
-                port=self.port,
-                database=self.database,
-                user=self.user,
-                password=self.password
-            )
+            connection_string = f"postgresql://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}"
+            self.engine = sqlalchemy.create_engine(connection_string)
             print("Connected to the database")
-        except psycopg2.Error as e:
+        except Exception as e:
             print("Error connecting to the database:", e)
 
     def disconnect(self):
-        if self.connection:
-            self.connection.close()
+        if self.engine:
+            self.engine.dispose()
             print("Disconnected from the database")
-
-    def initialize_engine(self):
-        """
-        Initialize a SQLAlchemy engine using the database credentials.
-        """
-        engine_url = f"postgresql://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}"
-        self.engine = create_engine(engine_url)
-        print("SQLAlchemy engine initialized")
     
     def extract_data(self, table_name):
         """
@@ -57,12 +44,17 @@ class RDSDatabaseConnector:
         Returns:
         - pd.DataFrame: Pandas DataFrame containing the extracted data.
         """
+        if self.engine is None:
+            print("Error: Engine is not initialized.")
+            return None
+
         query = f"SELECT * FROM {table_name}"
         try:
-            df = pd.read_sql_query(query, self.engine)
-            print(f"Data extracted from table '{table_name}'")
-            return df
-        except sqlalchemy.exc.ProgrammingError as e:
+            with self.engine.connect() as connection:
+                df = pd.read_sql_query(query, connection)
+                print(f"Data extracted from table '{table_name}'")
+                return df
+        except Exception as e:
             print("Error executing SQL query:", e)
             return None
 
@@ -80,7 +72,7 @@ class RDSDatabaseConnector:
         except Exception as e:
             print("Error saving data to CSV file:", e)
 
-def load_credentials(file_path):
+def load_credentials(self, file_path):
     """
     Load database credentials from a YAML file.
 
@@ -89,7 +81,7 @@ def load_credentials(file_path):
 
     Returns:
     - dict: Dictionary containing the database credentials.
-    """
+        """
     with open(file_path, 'r') as file:
         credentials = yaml.safe_load(file)
     return credentials
