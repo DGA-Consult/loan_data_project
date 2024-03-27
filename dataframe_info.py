@@ -42,4 +42,17 @@ class DataFrameInfo:
         null_percentage = (null_count / len(self.df)) * 100
         return pd.DataFrame({'Null Count': null_count, 'Null Percentage': null_percentage})
 
-    # Add any other methods you may find useful for DataFrame information extraction
+    def drop_columns_with_high_missing_values(self, threshold=30):
+        """
+        Drop columns with a high percentage of missing values.
+
+        Args:
+        - threshold (float): Threshold percentage of missing values. Default is 30%.
+
+        Returns:
+        - pd.DataFrame: DataFrame with columns dropped.
+        """
+        null_percentage = self.count_null_values()['Null Percentage']
+        columns_to_drop = null_percentage[null_percentage > threshold].index
+        self.df.drop(columns=columns_to_drop, inplace=True)
+        return self.df
