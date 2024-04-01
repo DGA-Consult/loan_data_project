@@ -2,18 +2,38 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 class Plotter:
-    @staticmethod
-    def plot_missing_values(df):
+    def __init__(self, df):
         """
-        Plot missing values in the DataFrame.
+        Initialize the Plotter instance.
 
         Args:
         - df (pd.DataFrame): Pandas DataFrame.
+        """
+        self.df = df
 
-        Returns:
-        - None
+    def plot_histogram(self, column):
+        """
+        Plot a histogram for the specified column.
+
+        Args:
+        - column (str): Name of the column to plot.
         """
         plt.figure(figsize=(10, 6))
-        sns.heatmap(df.isnull(), cbar=False, cmap='viridis')
-        plt.title('Missing Values in DataFrame')
+        sns.histplot(self.df[column], kde=True)
+        plt.title(f'Histogram of {column}')
+        plt.xlabel(column)
+        plt.ylabel('Frequency')
+        plt.show()
+
+    def plot_boxplot(self, column):
+        """
+        Plot a boxplot for the specified column.
+
+        Args:
+        - column (str): Name of the column to plot.
+        """
+        plt.figure(figsize=(10, 6))
+        sns.boxplot(x=self.df[column])
+        plt.title(f'Boxplot of {column}')
+        plt.xlabel(column)
         plt.show()

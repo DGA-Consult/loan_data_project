@@ -1,48 +1,44 @@
-import pandas as pd
-
 class DataFrameTransform:
-    @staticmethod
-    def count_null_values(df):
+    def __init__(self, df):
         """
-        Count NULL values in each column of the DataFrame.
+        Initialize the DataFrameTransform instance.
 
         Args:
         - df (pd.DataFrame): Pandas DataFrame.
-
-        Returns:
-        - pd.Series: Series containing count of NULL values in each column.
         """
-        return df.isnull().sum()
+        self.df = df
 
-    @staticmethod
-    def drop_columns(df, columns):
+    def drop_missing_values(self, threshold=0.5):
         """
-        Drop columns from the DataFrame.
+        Drop columns with missing values exceeding the threshold.
 
         Args:
-        - df (pd.DataFrame): Pandas DataFrame.
-        - columns (list): List of column names to be dropped.
+        - threshold (float): Threshold percentage of missing values. Default is 50%.
 
         Returns:
-        - pd.DataFrame: DataFrame with specified columns dropped.
+        - pd.DataFrame: DataFrame with columns dropped.
         """
-        return df.drop(columns=columns, axis=1)
+        null_percentage = (self.df.isnull().sum() / len(self.df)) * 100
+        columns_to_drop = null_percentage[null_percentage > threshold].index
+        self.df.drop(columns=columns_to_drop, inplace=True)
+        return self.df
 
-    @staticmethod
-    def impute_null_values(df, strategy='median'):
+    def fill_missing_values(self, strategy='mean'):
         """
-        Impute NULL values in the DataFrame columns.
+        Fill missing values using specified strategy.
 
         Args:
-        - df (pd.DataFrame): Pandas DataFrame.
-        - strategy (str): Imputation strategy. Default is 'median'.
+        - strategy (str): Strategy to fill missing values. Options: 'mean', 'median', 'mode'. Default is 'mean'.
 
         Returns:
-        - pd.DataFrame: DataFrame with NULL values imputed.
+        - pd.DataFrame: DataFrame with missing values filled.
         """
-        if strategy == 'median':
-            return df.fillna(df.median())
-        elif strategy == 'mean':
-            return df.fillna(df.mean())
+        if strategy == 'mean':
+            self.df.fillna(self.df.mean(), inplace=True)
+        elif strategy == 'median':
+            self.df.fillna(self.df.median(), inplace=True)
+        elif strategy == 'mode':
+            self.df.fillna(self.df.mode().iloc[0], inplace=True)
         else:
-            raise ValueError("Invalid imputation strategy. Choose from 'median' or 'mean'.")
+            print("Invalid strategy. Please choose from 'mean', 'median', or 'mode'.")
+        return self.df
