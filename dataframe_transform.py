@@ -23,7 +23,7 @@ class DataFrameTransform:
         self.df.drop(columns=columns_to_drop, inplace=True)
         return self.df
 
-    def fill_missing_values(self, strategy='mean'):
+    def fill_missing_values(self, strategy):
         """
         Fill missing values using specified strategy.
 
@@ -34,11 +34,12 @@ class DataFrameTransform:
         - pd.DataFrame: DataFrame with missing values filled.
         """
         if strategy == 'mean':
-            self.df.fillna(self.df.mean(), inplace=True)
+            self.df.fillna(self.df.mean(numeric_only=True), inplace=True)
         elif strategy == 'median':
-            self.df.fillna(self.df.median(), inplace=True)
+            self.df.fillna(self.df.median(numeric_only=True), inplace=True)
         elif strategy == 'mode':
-            self.df.fillna(self.df.mode().iloc[0], inplace=True)
+            # Fill missing values with the most frequent value in each column
+            self.df = self.df.apply(lambda x: x.fillna(x.value_counts().index[0]) if x.dtype == 'O' else x)
         else:
             print("Invalid strategy. Please choose from 'mean', 'median', or 'mode'.")
         return self.df
