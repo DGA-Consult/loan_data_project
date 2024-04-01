@@ -3,6 +3,7 @@ from db_utils import RDSDatabaseConnector, load_data
 from dataframe_info import DataFrameInfo
 from dataframe_transform import DataFrameTransform
 from plotter import Plotter
+from skewness_utils import SkewnessAnalyzer, SkewnessTransformer
 
 # Load database credentials from the YAML file
 credentials_file = 'credentials.yaml'
@@ -75,7 +76,7 @@ if df is not None:
 else:
     print("Failed to load data. Check the file path and try again.")
 
-# Using DataFrameInfo methods
+# Using DataFrameInfo methods extract info from df after imputation/transformation
 print("Column Data Types:")
 print(df_info.describe_columns())
 print()
@@ -94,6 +95,25 @@ print()
 
 print("Shape of the DataFrame:")
 df_info.print_shape()
+
+# now treat skew data
+
+# Step 1: Identify skewed columns and visualize data
+skewness_analyzer = SkewnessAnalyzer(df)
+skewed_columns = skewness_analyzer.identify_skewed_columns()
+skewness_analyzer.visualize_skewed_data(plotter)
+
+# Step 2: Transform skewed columns
+skewness_transformer = SkewnessTransformer(df, skewed_columns)
+transformed_df = skewness_transformer.transform_skewed_columns(method='log')
+
+# Step 3: Visualize the transformed data
+plotter = Plotter(transformed_df)
+for col in transformed_df.columns:
+    plotter.plot_histogram(col)
+
+# Step 4: Optionally, save a separate copy of the transformed DataFrame
+transformed_df.to_csv('transformed_data.csv', index=False)
 
 
         
