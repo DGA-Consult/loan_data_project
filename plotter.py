@@ -11,19 +11,25 @@ class Plotter:
         """
         self.df = df
 
-    def plot_histogram(self, column):
+    def plot_histogram(self, data, title=None, show=True):
         """
-        Plot a histogram for the specified column.
+        Plot a histogram for the specified data.
 
         Args:
-        - column (str): Name of the column to plot.
+        - data (DataFrame or Series): Data to plot.
+        - title (str): Title of the plot. Default is None.
+        - show (bool): Whether to display the plot on the screen. Default is True.
         """
         plt.figure(figsize=(10, 6))
-        sns.histplot(self.df[column], kde=True)
-        plt.title(f'Histogram of {column}')
-        plt.xlabel(column)
+        sns.histplot(data, kde=True)
+        plt.title(title if title else 'Histogram')
+        plt.xlabel('Value')
         plt.ylabel('Frequency')
-        plt.show()
+        if show:
+            plt.show()
+        else:
+            plt.savefig(f'{title}.png')
+            plt.close()
 
     def plot_boxplot(self, column):
         """

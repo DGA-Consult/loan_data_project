@@ -1,4 +1,6 @@
+import numpy as np
 import yaml
+import matplotlib.pyplot as plt
 from db_utils import RDSDatabaseConnector, load_data
 from dataframe_info import DataFrameInfo
 from dataframe_transform import DataFrameTransform
@@ -52,7 +54,7 @@ print("Statistical Values:")
 print(df_info.extract_statistics())
 print()
 
-print("Distinct Values in Categorical Columns:")
+print("Distinct Values in Cat'egorical Columns:")
 print(df_info.count_distinct_values())
 print()
 
@@ -71,8 +73,7 @@ if df is not None:
 
     # Use Plotter to visualize insights from the data
     plotter = Plotter(df)
-    plotter.plot_histogram('loan_amount')  # Example: Plot histogram for 'loan_amount' column
-    plotter.plot_boxplot('loan_amount')    # Example: Plot boxplot for 'loan_amount' column
+    plotter.plot_histogram(df.loan_amount, title="Histogram of loan amount")
 else:
     print("Failed to load data. Check the file path and try again.")
 
@@ -105,15 +106,24 @@ skewness_analyzer.visualize_skewed_data(plotter)
 
 # Step 2: Transform skewed columns
 skewness_transformer = SkewnessTransformer(df, skewed_columns)
-transformed_df = skewness_transformer.transform_skewed_columns(method='log')
+transformed_df = skewness_transformer.transform_skewed_columns()
 
 # Step 3: Visualize the transformed data
 plotter = Plotter(transformed_df)
-for col in transformed_df.columns:
-    plotter.plot_histogram(col)
+numeric_columns = transformed_df.select_dtypes(include=np.number).columns
+for col in numeric_columns:
+    best_transformation = skewness_transformer.find_best_transformation(col)
+    try:
+        transformed_col = skewness_transformer.transform_column(col, best_transformation)
+        plot_title = f'{col}_Transformed (Best Transformation: {best_transformation})'
+        plotter.plot_histogram(transformed_col.values, title=plot_title, show=False)
+    except ValueError as e:
+        print(f"Error processing column '{col}': {e}")
+        plot_title = f'{col}_Transformed (Transformation Failed)'
+        plotter.plot_histogram(transformed_col.values, title=plot_title, show=False)
 
 # Step 4: Optionally, save a separate copy of the transformed DataFrame
-transformed_df.to_csv('transformed_data.csv', index=False)
+transformed_df.to_csv('transformed_loan_data.csv', index=False)
 
 
         
