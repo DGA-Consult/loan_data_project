@@ -125,5 +125,26 @@ for col in numeric_columns:
 # Step 4: Optionally, save a separate copy of the transformed DataFrame
 transformed_df.to_csv('transformed_loan_data.csv', index=False)
 
+# now treat outliers if any are found
 
+# Step 1: Visualize the data to identify outliers
+plotter = Plotter(transformed_df)
+plotter.plot_boxplot('loan_amount')  # Example: Plot boxplot to visualize outliers in 'loan_amount' column
+
+# Step 2: Remove outliers using DataFrameTransform class for all numeric columns
+transformer = DataFrameTransform(transformed_df)
+df_without_outliers = transformed_df.copy()  # Create a copy of the DataFrame to preserve the original data
+
+# Iterate through all numeric columns and remove outliers
+for col in df_without_outliers.select_dtypes(include=np.number).columns:
+    df_without_outliers = transformer.remove_outliers(df_without_outliers, column=col)  # Remove outliers from each numeric column
+
+# Step 3: Re-visualize the data after removing outliers
+plotter = Plotter(df_without_outliers)
+for col in df_without_outliers.select_dtypes(include=np.number).columns:
+    plotter.plot_boxplot(col)  # Re-plot boxplot for each numeric column to ensure outliers have been removed
+
+# Step 4: Save the data with outliers removed to a separate CSV file
+file_path_without_outliers = 'loan_payments_without_outliers.csv'
+rds_connector.save_to_csv(df_without_outliers, file_path_without_outliers)
         

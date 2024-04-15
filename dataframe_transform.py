@@ -44,4 +44,30 @@ class DataFrameTransform:
             print("Invalid strategy. Please choose from 'mean', 'median', or 'mode'.")
         return self.df
     
-     
+    def remove_outliers(self, df, column, threshold=1.5):
+        """
+        Remove outliers from a specific column in the DataFrame.
+
+        Args:
+        - df (DataFrame): Input DataFrame.
+        - column (str): Name of the column from which outliers should be removed.
+        - threshold (float): Threshold value for detecting outliers. Default is 1.5.
+
+        Returns:
+        - DataFrame: DataFrame with outliers removed.
+        """
+        # Calculate the first quartile (Q1) and third quartile (Q3)
+        Q1 = df[column].quantile(0.25)
+        Q3 = df[column].quantile(0.75)
+    
+        # Interquartile range (IQR)
+        IQR = Q3 - Q1
+    
+        # Define the lower and upper bounds to detect outliers
+        lower_bound = Q1 - threshold * IQR
+        upper_bound = Q3 + threshold * IQR
+    
+        # Remove outliers from the column
+        df_filtered = df[(df[column] >= lower_bound) & (df[column] <= upper_bound)]
+    
+        return df_filtered
