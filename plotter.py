@@ -1,5 +1,7 @@
 import matplotlib.pyplot as plt
 import seaborn as sns
+import numpy as np
+import pandas as pd
 
 class Plotter:
     def __init__(self, df):
@@ -19,18 +21,20 @@ class Plotter:
         - data (DataFrame or Series): Data to plot.
         - title (str): Title of the plot. Default is None.
         - show (bool): Whether to display the plot on the screen. Default is True.
+
+        Returns:
+        - ax (Axes): The Axes object of the plot.
         """
         plt.figure(figsize=(10, 6))
-        sns.histplot(data, kde=True)
+        ax = sns.histplot(data, kde=True)
         plt.title(title if title else 'Histogram')
         plt.xlabel('Value')
         plt.ylabel('Frequency')
         if show:
             plt.show()
         else:
-            plt.savefig(f'{title}.png')
-            plt.close()
-
+            return ax  # Return the Axes object
+    
     def plot_boxplot(self, column):
         """
         Plot a boxplot for the specified column.
