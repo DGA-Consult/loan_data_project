@@ -172,3 +172,5 @@ for col1, col2, correlation in highly_correlated_columns:
 
 # Step 3: Remove highly correlated columns from the dataset
 # df.drop(columns=columns_to_remove, inplace=True)
+    
+# Next, we look at the current state of the loan book
