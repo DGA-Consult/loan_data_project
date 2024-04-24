@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import seaborn as sns
 import yaml
 import matplotlib.pyplot as plt
 from db_utils import RDSDatabaseConnector, load_data
@@ -7,6 +8,7 @@ from dataframe_info import DataFrameInfo
 from dataframe_transform import DataFrameTransform
 from plotter import Plotter
 from skewness_utils import SkewnessAnalyzer, SkewnessTransformer
+from correlation_analyser import CorrelationAnalyser 
 
 # Load database credentials from the YAML file
 credentials_file = 'credentials.yaml'
@@ -152,3 +154,21 @@ for col in df_without_outliers.select_dtypes(include=np.number).columns:
 file_path_without_outliers = 'loan_payments_without_outliers.csv'
 rds_connector.save_to_csv(df_without_outliers, file_path_without_outliers)
         
+# now calculate correlations, identify and remove highly correlated variables
+
+# Step 1: Compute the correlation matrix for the dataset and visualize it
+correlation_analyser = CorrelationAnalyser(df)
+correlation_matrix = correlation_analyser.compute_correlation_matrix()
+correlation_analyser.visualize_correlation_matrix()
+
+# Step 2: Identify highly correlated columns
+# Define correlation threshold
+correlation_threshold = 0.8
+
+# Find highly correlated columns
+highly_correlated_columns = correlation_analyser.identify_highly_correlated_columns(correlation_matrix, threshold=correlation_threshold)
+for col1, col2, correlation in highly_correlated_columns:
+    print(f"Columns '{col1}' and '{col2}' have correlation {correlation:.2f}")
+
+# Step 3: Remove highly correlated columns from the dataset
+# df.drop(columns=columns_to_remove, inplace=True)
