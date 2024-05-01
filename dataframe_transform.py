@@ -20,7 +20,7 @@ class DataFrameTransform:
         """
         null_percentage = (self.df.isnull().sum() / len(self.df)) * 100
         columns_to_drop = null_percentage[null_percentage > threshold].index
-        self.df.drop(columns=columns_to_drop, inplace=True)
+        self.df.drop(columns=columns_to_drop, inplace=False)
         return self.df
 
     def fill_missing_values(self, strategy):
