@@ -198,3 +198,6 @@ charged_off_percentage = analyzer.calculate_charged_off_percentage()
 print(f"Percentage of loans charged-off is  {charged_off_percentage:.2f}")
 total_amount_charged_off = analyzer.calculate_total_amount_charged_off() 
 print(f"The total amount charged off is  {total_amount_charged_off:.2f}")
+
+# Next, calculate and print the projected loss from charged off loans
+projected_loss_charged_off = analyzer.calculate_projected_loss_charged_off()

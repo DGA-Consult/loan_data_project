@@ -1,4 +1,6 @@
 import matplotlib.pyplot as plt
+import pandas as pd
+from datetime import datetime
 
 class LoanBookAnalyzer:
     def __init__(self, loan_data):
@@ -83,3 +85,36 @@ class LoanBookAnalyzer:
         charged_off_loans = self.loan_data[self.loan_data['loan_status'] == 'Charged Off']
         total_amount_charged_off = charged_off_loans['total_payment'].sum()
         return total_amount_charged_off
+    
+    def calculate_projected_loss_charged_off(self):
+        # Step 0: convert issue date to datetimelike format
+        self.loan_data['issue_date'] = pd.to_datetime(self.loan_data['issue_date'])
+
+        # Step 1: Filter loans marked as Charged Off
+        charged_off_loans = self.loan_data[self.loan_data['loan_status'] == 'Charged Off']
+        
+        # Step 2: Calculate the remaining outstanding principal at the time of charge-off
+        charged_off_loans['remaining_principal'] = charged_off_loans['out_prncp']
+        
+        # Step 3: Calculate the projected loss in revenue for each loan if they had finished their term
+        charged_off_loans['loss_in_revenue'] = charged_off_loans['remaining_principal'] + charged_off_loans['total_rec_int'] + charged_off_loans['total_rec_late_fee']
+
+        # Step 4: Convert issue_date to future calendar years relative to the current date
+        current_year = datetime.now().year
+        charged_off_loans['future_issue_year'] = current_year + (charged_off_loans['issue_date'].dt.year - current_year)
+
+        # Step 5: Group by future_issue_year and sum the loss_in_revenue for each year
+        projected_loss_by_year = charged_off_loans.groupby('future_issue_year')['loss_in_revenue'].sum()
+
+        # Step 6: Visualize the loss projected over the future calendar years
+        plt.figure(figsize=(10, 6))
+        plt.plot(projected_loss_by_year.index, projected_loss_by_year.values, marker='o', linestyle='-')
+        plt.xlabel('Future Calendar Year')
+        plt.ylabel('Projected Loss in Revenue')
+        plt.title('Projected Loss in Revenue Over Future Calendar Years for Charged Off Loans')
+        plt.grid(True)
+        plt.tight_layout()
+        plt.show()
+
+        # Optionally, return the DataFrame containing the calculated loss
+        return projected_loss_by_year
