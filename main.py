@@ -201,3 +201,7 @@ print(f"The total amount charged off is  {total_amount_charged_off:.2f}")
 
 # Next, calculate and print the projected loss from charged off loans
 projected_loss_charged_off = analyzer.calculate_projected_loss_charged_off()
+print(projected_loss_charged_off)
+
+# Analyze and visualize indicators
+analyzer.analyze_indicators()

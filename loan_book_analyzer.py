@@ -88,19 +88,20 @@ class LoanBookAnalyzer:
     
     def calculate_projected_loss_charged_off(self):
         # Step 0: convert issue date to datetimelike format
-        self.loan_data['issue_date'] = pd.to_datetime(self.loan_data['issue_date'])
+        self.loan_data['issue_date'] = pd.to_datetime(self.loan_data['issue_date'], format='mixed')
 
         # Step 1: Filter loans marked as Charged Off
-        charged_off_loans = self.loan_data[self.loan_data['loan_status'] == 'Charged Off']
+        charged_off_loans = self.loan_data[self.loan_data['loan_status'] == 'Charged Off'].copy()
         
         # Step 2: Calculate the remaining outstanding principal at the time of charge-off
         charged_off_loans['remaining_principal'] = charged_off_loans['out_prncp']
         
         # Step 3: Calculate the projected loss in revenue for each loan if they had finished their term
         charged_off_loans['loss_in_revenue'] = charged_off_loans['remaining_principal'] + charged_off_loans['total_rec_int'] + charged_off_loans['total_rec_late_fee']
-
+        
         # Step 4: Convert issue_date to future calendar years relative to the current date
         current_year = datetime.now().year
+        # current_year = datetime.now().year
         charged_off_loans['future_issue_year'] = current_year + (charged_off_loans['issue_date'].dt.year - current_year)
 
         # Step 5: Group by future_issue_year and sum the loss_in_revenue for each year
@@ -118,3 +119,31 @@ class LoanBookAnalyzer:
 
         # Optionally, return the DataFrame containing the calculated loss
         return projected_loss_by_year
+    
+    def analyze_indicators(self):
+        
+        # Subset for current loans
+        current_loans = self.loan_data[self.loan_data['loan_status'].isin(['Current', 'Fully Paid'])]
+
+        # Subset for charged off loans
+        charged_off_loans = self.loan_data[self.loan_data['loan_status'] == 'Charged Off']
+
+        # Subset for loans currently behind on payments
+        behind_payment_loans = self.loan_data[self.loan_data['loan_status'].isin(['Late (31-120 days)', 'Late (16-30 days)'])]
+
+        # Combine the subsets for comparison
+        indicators_df = pd.concat([current_loans, charged_off_loans, behind_payment_loans], keys=['Current', 'Charged Off', 'Behind Payment'])
+
+        # Analysis and visualization
+        self._analyze_and_visualize(indicators_df, 'grade', 'Loan Grade')
+        self._analyze_and_visualize(indicators_df, 'purpose', 'Loan Purpose')
+        self._analyze_and_visualize(indicators_df, 'home_ownership', 'Home Ownership')
+
+    def _analyze_and_visualize(self, indicators_df, column, title):
+        plt.figure(figsize=(10, 6))
+        pd.crosstab(indicators_df.index.get_level_values(0), indicators_df[column], normalize='index').plot(kind='bar', stacked=True, ax=plt.gca())
+        plt.title(f'Comparison of {title} between Charged Off and Behind Payment Loans')
+        plt.xlabel('Loan Status')
+        plt.ylabel('Percentage')
+        plt.legend(title=title)
+        plt.show()
